@@ -14,10 +14,15 @@ library(flexdashboard)
 library(dplyr)
 library(sf)
 library(leaflet)
+library(DT)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
 ```
+
 ```{r lectura de datos}
 cantones <- 
-  st_read(dsn = "cantones_simplificados.geojson.txt", quiet = TRUE) %>%
+  st_read(dsn = "cantones_simplificados.geojson", quiet = TRUE) %>%
   st_transform(4326)
 
 ```
@@ -42,12 +47,30 @@ Column {data-width=350}
 ### Chart B
 
 ```{r}
-
+cantones %>%
+  dplyr::select(provincia, canton, area) %>%
+  datatable(colnames = c(
+    "provincia", "canton", "area"
+    
+  ), options = list(pageLength = 5, language = list(url = '//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json')))
 ```
 
 ### Chart C
 
 ```{r}
+cantones_grafico <-
+cantones %>%
+  slice_max(area, n = 8) %>%
+  st_drop_geometry() %>%
+  ggplot(aes (x = reorder (canton, area), y = area)) + 
+  geom_bar(stat = "identity") +
+coord_flip() +
+ggtitle("Area de cada canton") + 
+  xlab("canton") + 
+  ylab("area") + 
+  theme_minimal()
 
+ggplotly(cantones_grafico) %>% 
+  config(locale = 'es')
 ```
 
